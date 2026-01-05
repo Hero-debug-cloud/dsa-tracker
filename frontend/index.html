@@ -510,6 +510,9 @@
                 <option value="">All Problems</option>
                 <option value="Akshaya">Akshaya</option>
                 <option value="Arpan">Arpan</option>
+                <option value="Vinay">Vinay</option>
+                <option value="Pradyum">Pradyum</option>
+                <option value="Lavanya">Lavanya</option>
               </select>
             </div>
           </div>
@@ -600,9 +603,12 @@
           <div style="padding: 16px 16px 0;">
             <div class="flex">
               <select id="attempt-list-user">
-                <option value="">Select user</option>
+                <option value="">All Users</option>
                 <option value="Akshaya">Akshaya</option>
                 <option value="Arpan">Arpan</option>
+                <option value="Vinay">Vinay</option>
+                <option value="Pradyum">Pradyum</option>
+                <option value="Lavanya">Lavanya</option>
               </select>
               <button class="secondary" onclick="loadAttempts()">Load Attempts</button>
             </div>
@@ -633,9 +639,12 @@
           <div style="padding: 16px 16px 0;">
             <div class="flex">
               <select id="stats-user">
-                <option value="">Select user</option>
+                <option value="">All Users</option>
                 <option value="Akshaya">Akshaya</option>
                 <option value="Arpan">Arpan</option>
+                <option value="Vinay">Vinay</option>
+                <option value="Pradyum">Pradyum</option>
+                <option value="Lavanya">Lavanya</option>
               </select>
               <button class="secondary" onclick="loadStats()">Load Stats</button>
             </div>
@@ -651,7 +660,17 @@
         <div class="section-title">Leaderboard</div>
         <div class="section-box">
           <div style="padding: 16px 16px 0;">
-            <button class="secondary" onclick="loadLeaderboard()">Load Leaderboard</button>
+            <div class="flex">
+              <select id="leaderboard-user">
+                <option value="">All Users</option>
+                <option value="Akshaya">Akshaya</option>
+                <option value="Arpan">Arpan</option>
+                <option value="Vinay">Vinay</option>
+                <option value="Pradyum">Pradyum</option>
+                <option value="Lavanya">Lavanya</option>
+              </select>
+              <button class="secondary" onclick="loadLeaderboard()">Load Leaderboard</button>
+            </div>
           </div>
           <table id="leaderboard-table">
             <thead>
@@ -935,6 +954,7 @@
     }
 
     async function loadLeaderboard() {
+      const user = document.getElementById("leaderboard-user").value;
       const res = await fetch("/leaderboard");
       const lb = await res.json();
       const tbody = document.querySelector("#leaderboard-table tbody");

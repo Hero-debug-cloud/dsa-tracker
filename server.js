@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 });
 
 const db = new Database("dsa_v2.sqlite");
-const USERS = ["Akshaya", "Arpan"];
+const USERS = ["Akshaya", "Arpan","Vinay","Pradyum","Lavanya"];
 
 /* ============================================================
    SCHEMA
