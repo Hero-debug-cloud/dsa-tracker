@@ -1,0 +1,25 @@
+{
+  "name": "dsa-tracker-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server-json.js",
+    "start:json": "node server-json.js",
+    "dev": "nodemon server-json.js --ignore data/",
+    "dev:json": "nodemon server-json.js --ignore data/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "better-sqlite3": "^12.5.0",
+    "cors": "^2.8.5",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11",
+    "serve": "^14.2.5"
+  }
+}
