@@ -4,18 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server-json.js",
+    "start": "node server-turso.js",
     "start:json": "node server-json.js",
+    "start:turso": "node server-turso.js",
     "dev": "nodemon server-json.js --ignore data/",
-    "dev:json": "nodemon server-json.js --ignore data/"
+    "dev:json": "nodemon server-json.js --ignore data/",
+    "dev:turso": "nodemon server-turso.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@libsql/client": "^0.15.15",
     "better-sqlite3": "^12.5.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1"
   },
   "devDependencies": {
