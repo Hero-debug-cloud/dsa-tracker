@@ -20,6 +20,9 @@ export type Stats = {
   solved_last_7_days: number;
   difficulty_progression_index: number;
   activity_log: { date: string; count: number }[];
+  calendar_activity: { [key: string]: number };
+  current_streak: number;
+  best_streak: number;
 };
 
 type UseStatsReturn = {

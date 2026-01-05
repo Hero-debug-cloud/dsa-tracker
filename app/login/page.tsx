@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { ArrowLoader } from "@/components/ui/ArrowLoader";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -21,6 +23,8 @@ export default function LoginPage() {
       toast.error("Please enter both username and password");
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const response = await fetch("/api/login", {
@@ -39,20 +43,26 @@ export default function LoginPage() {
         localStorage.setItem("currentUser", JSON.stringify(data.user));
 
         // Dispatch a storage event to trigger the storage event listener in Navigation component
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: 'authToken',
-          newValue: data.token
-        }));
+        window.dispatchEvent(
+          new StorageEvent("storage", {
+            key: "authToken",
+            newValue: data.token,
+          }),
+        );
 
         // Redirect to main app
         router.push("/");
         router.refresh(); // Refresh to update the UI
       } else {
-        toast.error(data.error || "Login failed. Please check your credentials.");
+        toast.error(
+          data.error || "Login failed. Please check your credentials.",
+        );
       }
     } catch (error) {
       console.error("Login error:", error);
       toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -100,8 +110,15 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full">
-              Sign In
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <ArrowLoader size="sm" />
+                  <span>Signing In...</span>
+                </div>
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </form>
         </CardContent>

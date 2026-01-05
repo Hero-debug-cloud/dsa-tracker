@@ -2,18 +2,25 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from "@/components/ui/table";
 import { useLeaderboard } from "@/lib/hooks";
 import { Trophy, Medal, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ArrowInlineLoader } from "@/components/ui/ArrowLoader";
 
 export default function LeaderboardPage() {
   const router = useRouter();
@@ -42,7 +49,11 @@ export default function LeaderboardPage() {
       case 3:
         return <Medal className="h-5 w-5 text-amber-700" />;
       default:
-        return <span className="text-muted-foreground font-medium w-5 text-center inline-block">{rank}</span>;
+        return (
+          <span className="text-muted-foreground font-medium w-5 text-center inline-block">
+            {rank}
+          </span>
+        );
     }
   };
 
@@ -86,29 +97,40 @@ export default function LeaderboardPage() {
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[100px] text-center font-bold">Rank</TableHead>
+                  <TableHead className="w-[100px] text-center font-bold">
+                    Rank
+                  </TableHead>
                   <TableHead className="font-bold">User</TableHead>
-                  <TableHead className="text-right font-bold text-emerald-600 dark:text-emerald-400">Easy</TableHead>
-                  <TableHead className="text-right font-bold text-amber-600 dark:text-amber-400">Medium</TableHead>
-                  <TableHead className="text-right font-bold text-rose-600 dark:text-rose-400">Hard</TableHead>
-                  <TableHead className="text-right font-bold pr-8">Total</TableHead>
+                  <TableHead className="text-right font-bold text-emerald-600 dark:text-emerald-400">
+                    Easy
+                  </TableHead>
+                  <TableHead className="text-right font-bold text-amber-600 dark:text-amber-400">
+                    Medium
+                  </TableHead>
+                  <TableHead className="text-right font-bold text-rose-600 dark:text-rose-400">
+                    Hard
+                  </TableHead>
+                  <TableHead className="text-right font-bold pr-8">
+                    Total
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  [...Array(5)].map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="h-16 text-center"><div className="h-6 w-6 bg-muted/50 rounded-full animate-pulse mx-auto" /></TableCell>
-                      <TableCell><div className="h-4 w-32 bg-muted/50 rounded animate-pulse" /></TableCell>
-                      <TableCell className="text-right"><div className="h-4 w-8 bg-muted/50 rounded animate-pulse ml-auto" /></TableCell>
-                      <TableCell className="text-right"><div className="h-4 w-8 bg-muted/50 rounded animate-pulse ml-auto" /></TableCell>
-                      <TableCell className="text-right"><div className="h-4 w-8 bg-muted/50 rounded animate-pulse ml-auto" /></TableCell>
-                      <TableCell className="text-right pr-8"><div className="h-4 w-12 bg-muted/50 rounded animate-pulse ml-auto" /></TableCell>
-                    </TableRow>
-                  ))
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-16">
+                      <ArrowInlineLoader text="Loading leaderboard..." />
+                    </TableCell>
+                  </TableRow>
                 ) : leaderboard.length > 0 ? (
                   leaderboard.map((entry, index) => (
-                    <TableRow key={entry.user} className={cn("transition-colors cursor-default", getRankStyles(index))}>
+                    <TableRow
+                      key={entry.user}
+                      className={cn(
+                        "transition-colors cursor-default",
+                        getRankStyles(index),
+                      )}
+                    >
                       <TableCell className="text-center font-medium">
                         <div className="flex items-center justify-center">
                           {getRankIcon(index)}
@@ -120,14 +142,26 @@ export default function LeaderboardPage() {
                             {entry.user.slice(0, 2).toUpperCase()}
                           </div>
                           <div className="flex flex-col">
-                            <span className="font-semibold text-foreground/90">{entry.user}</span>
-                            {index === 0 && <span className="text-[10px] uppercase font-bold text-yellow-600 dark:text-yellow-400">Leader</span>}
+                            <span className="font-semibold text-foreground/90">
+                              {entry.user}
+                            </span>
+                            {index === 0 && (
+                              <span className="text-[10px] uppercase font-bold text-yellow-600 dark:text-yellow-400">
+                                Leader
+                              </span>
+                            )}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-mono text-emerald-600 dark:text-emerald-500 font-medium">{entry.easy_solved}</TableCell>
-                      <TableCell className="text-right font-mono text-amber-600 dark:text-amber-500 font-medium">{entry.medium_solved}</TableCell>
-                      <TableCell className="text-right font-mono text-rose-600 dark:text-rose-500 font-medium">{entry.hard_solved}</TableCell>
+                      <TableCell className="text-right font-mono text-emerald-600 dark:text-emerald-500 font-medium">
+                        {entry.easy_solved}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-amber-600 dark:text-amber-500 font-medium">
+                        {entry.medium_solved}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-rose-600 dark:text-rose-500 font-medium">
+                        {entry.hard_solved}
+                      </TableCell>
                       <TableCell className="text-right pr-8">
                         <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-sm font-bold bg-primary/10 text-primary">
                           {entry.solved}
@@ -137,7 +171,10 @@ export default function LeaderboardPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-16 text-muted-foreground">
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-16 text-muted-foreground"
+                    >
                       <div className="flex flex-col items-center gap-2">
                         <Trophy className="h-10 w-10 text-muted-foreground/30" />
                         <p>No leaderboard data found</p>

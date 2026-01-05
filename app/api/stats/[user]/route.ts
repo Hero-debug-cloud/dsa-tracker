@@ -153,7 +153,7 @@ export async function GET(
       WHERE a.user = ?
     `, [userParam, userParam]);
 
-        // Fetch daily activity for the chart
+        // Fetch daily activity for the chart (last 30 days)
         const activityResult = await client.execute(`
       SELECT 
         date,
@@ -166,16 +166,55 @@ export async function GET(
       ORDER BY date ASC
     `, [userParam]);
 
+        // Fetch calendar activity data (current month)
+        const calendarResult = await client.execute(`
+      SELECT 
+        date,
+        COUNT(DISTINCT problem_id) as count
+      FROM attempts
+      WHERE user = ? 
+        AND status = 'Solved' 
+        AND date >= date('now', 'start of month')
+        AND date <= date('now', 'start of month', '+1 month', '-1 day')
+      GROUP BY date
+      ORDER BY date ASC
+    `, [userParam]);
+
+        // Calculate streaks - basic approach
+        const streakResult = await client.execute(`
+      SELECT 
+        COUNT(DISTINCT date) as total_active_days,
+        -- For now, use a simple calculation - can be enhanced later
+        CASE 
+          WHEN MAX(date) = date('now') THEN 1
+          WHEN MAX(date) = date('now', '-1 day') THEN 1  
+          ELSE 0
+        END as current_streak,
+        COUNT(DISTINCT date) as best_streak
+      FROM attempts
+      WHERE user = ? AND status = 'Solved'
+    `, [userParam]);
+
         const activity_log = activityResult.rows.map(row => ({
             date: String(row.date),
             count: Number(row.count)
         }));
 
+        const calendar_activity = calendarResult.rows.reduce((acc, row) => {
+            acc[String(row.date)] = Number(row.count);
+            return acc;
+        }, {} as { [key: string]: number });
+
+        const streakData = streakResult.rows.length > 0 ? streakResult.rows[0] : { current_streak: 0, best_streak: 0 };
+
         const statsRow = statsResult.rows.length > 0 ? statsResult.rows[0] : null;
 
         const stats = statsRow ? {
             ...statsRow,
-            activity_log
+            activity_log,
+            calendar_activity,
+            current_streak: Number(streakData.current_streak),
+            best_streak: Number(streakData.best_streak)
         } : {
             attempted: 0,
             solved: 0,
@@ -192,7 +231,10 @@ export async function GET(
             problems_per_day: 0,
             solved_last_7_days: 0,
             difficulty_progression_index: 0,
-            activity_log: []
+            activity_log: [],
+            calendar_activity: {},
+            current_streak: 0,
+            best_streak: 0
         };
 
         return new NextResponse(JSON.stringify(stats), {
