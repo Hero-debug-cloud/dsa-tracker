@@ -67,16 +67,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center py-6">
           <CardTitle className="text-2xl">DSA Tracker</CardTitle>
-          <p className="text-muted-foreground">Sign in to your account</p>
+          <p className="text-muted-foreground text-sm">Sign in to your account</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-6 py-2">
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-sm">Username</Label>
               <Input
                 id="username"
                 type="text"
@@ -84,12 +84,13 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                className="mt-1"
               />
             </div>
 
             <div>
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
+              <Label htmlFor="password" className="text-sm">Password</Label>
+              <div className="relative mt-1">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -102,7 +103,7 @@ export default function LoginPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-xs"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? "Hide" : "Show"}
@@ -110,7 +111,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full mt-4" disabled={isLoading}>
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <ArrowLoader size="sm" />

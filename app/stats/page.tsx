@@ -137,7 +137,7 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="container mx-auto py-12 px-4 max-w-6xl space-y-8">
+    <div className="container mx-auto py-6 sm:py-12 px-4 max-w-6xl space-y-8">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -191,20 +191,20 @@ export default function StatsPage() {
       ) : stats ? (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Top KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
                       Total Solved
                     </p>
-                    <h3 className="text-3xl font-bold mt-2 text-primary">
+                    <h3 className="text-2xl sm:text-3xl font-bold mt-2 text-primary">
                       {stats.solved}
                     </h3>
                   </div>
                   <div className="p-2 bg-primary/20 rounded-full text-primary">
-                    <Trophy className="h-5 w-5" />
+                    <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                 </div>
                 <div className="mt-4 text-xs text-muted-foreground flex items-center gap-1">
@@ -217,18 +217,18 @@ export default function StatsPage() {
             </Card>
 
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
                       Accuracy
                     </p>
-                    <h3 className="text-3xl font-bold mt-2">
+                    <h3 className="text-2xl sm:text-3xl font-bold mt-2">
                       {stats.first_try_accuracy}%
                     </h3>
                   </div>
                   <div className="p-2 bg-blue-500/10 rounded-full text-blue-500">
-                    <Target className="h-5 w-5" />
+                    <Target className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                 </div>
                 <div className="mt-4 text-xs text-muted-foreground">
@@ -238,18 +238,18 @@ export default function StatsPage() {
             </Card>
 
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
                       Active Days
                     </p>
-                    <h3 className="text-3xl font-bold mt-2">
+                    <h3 className="text-2xl sm:text-3xl font-bold mt-2">
                       {stats.active_days}
                     </h3>
                   </div>
                   <div className="p-2 bg-orange-500/10 rounded-full text-orange-500">
-                    <Flame className="h-5 w-5" />
+                    <Flame className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                 </div>
                 <div className="mt-4 text-xs text-muted-foreground">
@@ -259,18 +259,18 @@ export default function StatsPage() {
             </Card>
 
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
                       Consistency
                     </p>
-                    <h3 className="text-3xl font-bold mt-2">
+                    <h3 className="text-2xl sm:text-3xl font-bold mt-2">
                       {stats.problems_per_day}
                     </h3>
                   </div>
                   <div className="p-2 bg-purple-500/10 rounded-full text-purple-500">
-                    <Activity className="h-5 w-5" />
+                    <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                 </div>
                 <div className="mt-4 text-xs text-muted-foreground">
@@ -280,85 +280,87 @@ export default function StatsPage() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div className="grid grid-cols-1 gap-6">
             <ActivityCalendar
               activityData={stats.calendar_activity || {}}
               currentStreak={stats.current_streak || 0}
               bestStreak={stats.best_streak || 0}
             />
 
-            {/* Difficulty Pie Chart */}
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-primary" />
-                  Difficulty Breakdown
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col items-center">
-                  <div className="relative mb-4">
-                    <PieChart width={180} height={180}>
-                      <Pie
-                        data={difficultyData}
-                        cx={90}
-                        cy={90}
-                        innerRadius={50}
-                        outerRadius={70}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {difficultyData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                            strokeWidth={0}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--popover))",
-                          borderColor: "hsl(var(--border))",
-                          borderRadius: "var(--radius)",
-                        }}
-                      />
-                    </PieChart>
-                    {/* Center Text */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                      <span className="text-xl font-bold">{stats.solved}</span>
-                      <span className="text-xs text-muted-foreground">
-                        Total
-                      </span>
+            {/* Difficulty Pie Chart - Mobile: Full width, Desktop: Side by side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="shadow-sm lg:order-2">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    Difficulty Breakdown
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col items-center">
+                    <div className="relative mb-4">
+                      <PieChart width={180} height={180}>
+                        <Pie
+                          data={difficultyData}
+                          cx={90}
+                          cy={90}
+                          innerRadius={50}
+                          outerRadius={70}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {difficultyData.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                              strokeWidth={0}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--popover))",
+                            borderColor: "hsl(var(--border))",
+                            borderRadius: "var(--radius)",
+                          }}
+                        />
+                      </PieChart>
+                      {/* Center Text */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-xl font-bold">{stats.solved}</span>
+                        <span className="text-xs text-muted-foreground">
+                          Total
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                      <span>Easy</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                        <span>Easy</span>
+                      </div>
+                      <span className="font-medium">{stats.easy_solved}</span>
                     </div>
-                    <span className="font-medium">{stats.easy_solved}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-amber-500" />
-                      <span>Medium</span>
+                    <div className="flex justify-between items-center text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-amber-500" />
+                        <span>Medium</span>
+                      </div>
+                      <span className="font-medium">{stats.medium_solved}</span>
                     </div>
-                    <span className="font-medium">{stats.medium_solved}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-rose-500" />
-                      <span>Hard</span>
+                    <div className="flex justify-between items-center text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-rose-500" />
+                        <span>Hard</span>
+                      </div>
+                      <span className="font-medium">{stats.hard_solved}</span>
                     </div>
-                    <span className="font-medium">{stats.hard_solved}</span>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       ) : (

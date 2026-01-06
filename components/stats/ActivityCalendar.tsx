@@ -137,7 +137,7 @@ export function ActivityCalendar({
         <div className="grid grid-cols-7 gap-1 mb-4">
           {days.map((day, index) => {
             if (!day) {
-              return <div key={index} className="aspect-square" />;
+              return <div key={index} className="aspect-square sm:aspect-[0.8] md:aspect-square" />;
             }
 
             const { day: dayNum, problemCount, isToday } = day;
@@ -146,7 +146,7 @@ export function ActivityCalendar({
               <div
                 key={dayNum}
                 className={`
-                  aspect-square flex items-center justify-center text-xs rounded cursor-pointer
+                  flex items-center justify-center text-xs rounded cursor-pointer
                   transition-colors duration-200
                   ${
                     isToday
@@ -155,6 +155,7 @@ export function ActivityCalendar({
                         ? "bg-emerald-500 text-white hover:bg-emerald-600"
                         : "text-muted-foreground hover:bg-muted"
                   }
+                  aspect-square sm:aspect-[0.8] md:aspect-square
                 `}
                 title={
                   problemCount > 0
@@ -162,7 +163,8 @@ export function ActivityCalendar({
                     : "No problems solved"
                 }
               >
-                {dayNum}
+                <span className="sm:hidden text-[8px]">{dayNum}</span>
+                <span className="hidden sm:block">{dayNum}</span>
               </div>
             );
           })}

@@ -184,7 +184,7 @@ export default function ProblemsPage() {
   }
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
+    <div className="container mx-auto py-6 sm:py-10 px-4 max-w-6xl">
       <Card className="mb-8">
         <CardContent>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -348,177 +348,311 @@ export default function ProblemsPage() {
           </div>
 
           <div className="rounded-md border bg-card shadow-sm overflow-hidden mt-6">
-            <table className="w-full">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="w-[60px] h-12 px-4 text-left font-semibold text-muted-foreground">
-                    ID
-                  </th>
-                  <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
-                    Platform
-                  </th>
-                  <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
-                    Name
-                  </th>
-                  <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
-                    Topic
-                  </th>
-                  <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
-                    Difficulty
-                  </th>
-                  <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
-                    Status
-                  </th>
-                  <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
-                    Solved By
-                  </th>
-                  <th className="h-12 px-4 text-right font-semibold text-muted-foreground">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="w-full">
-                {showInlineLoader ? (
-                  <tr>
-                    <td colSpan={8} className="text-center py-8">
-                      <ArrowInlineLoader text="Refreshing problems..." />
-                    </td>
-                  </tr>
-                ) : problems.length > 0 ? (
-                  problems
-                    .filter((problem) => {
-                      // Search filter
-                      const matchesSearch =
-                        !searchTerm ||
-                        problem.name
-                          .toLowerCase()
-                          .includes(searchTerm.toLowerCase()) ||
-                        problem.platform
-                          .toLowerCase()
-                          .includes(searchTerm.toLowerCase()) ||
-                        problem.topic
-                          .toLowerCase()
-                          .includes(searchTerm.toLowerCase());
+            {/* Mobile view - Card layout for small screens */}
+            <div className="block md:hidden">
+              {showInlineLoader ? (
+                <div className="p-8 text-center">
+                  <ArrowInlineLoader text="Refreshing problems..." />
+                </div>
+              ) : problems.length > 0 ? (
+                problems
+                  .filter((problem) => {
+                    // Search filter
+                    const matchesSearch =
+                      !searchTerm ||
+                      problem.name
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase()) ||
+                      problem.platform
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase()) ||
+                      problem.topic
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase());
 
-                      // Difficulty filter
-                      const matchesDifficulty =
-                        selectedDifficulty === "all" ||
-                        problem.difficulty.toLowerCase() ===
-                          selectedDifficulty.toLowerCase();
+                    // Difficulty filter
+                    const matchesDifficulty =
+                      selectedDifficulty === "all" ||
+                      problem.difficulty.toLowerCase() ===
+                        selectedDifficulty.toLowerCase();
 
-                      // Status filter
-                      const matchesStatus =
-                        selectedStatus === "all" ||
-                        (problem.status &&
-                          problem.status.toLowerCase() ===
-                            selectedStatus.toLowerCase());
+                    // Status filter
+                    const matchesStatus =
+                      selectedStatus === "all" ||
+                      (problem.status &&
+                        problem.status.toLowerCase() ===
+                          selectedStatus.toLowerCase());
 
-                      return (
-                        matchesSearch && matchesDifficulty && matchesStatus
-                      );
-                    })
-                    .map((problem) => (
-                      <tr
-                        key={problem.id}
-                        className="hover:bg-muted/50 transition-colors border-b"
-                      >
-                        <td className="p-4 font-mono text-xs text-muted-foreground">
-                          #{problem.id}
-                        </td>
-                        <td className="p-4 font-medium text-muted-foreground">
-                          {problem.platform.charAt(0).toUpperCase() +
-                            problem.platform.slice(1).toLowerCase()}
-                        </td>
-                        <td className="p-4 font-medium">{problem.name}</td>
-                        <td className="p-4">
-                          <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                            {problem.topic}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span
-                            className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium ${getDifficultyClass(problem.difficulty)}`}
-                          >
-                            {problem.difficulty}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          {problem.status ? (
+                    return (
+                      matchesSearch && matchesDifficulty && matchesStatus
+                    );
+                  })
+                  .map((problem) => (
+                    <div
+                      key={problem.id}
+                      className="border-b p-4 hover:bg-muted/50 transition-colors last:border-b-0"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-mono text-xs text-muted-foreground">
+                              #{problem.id}
+                            </span>
                             <span
-                              className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium ${getStatusClass(problem.status)}`}
+                              className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${getDifficultyClass(problem.difficulty)}`}
                             >
-                              {problem.status}
+                              {problem.difficulty}
                             </span>
-                          ) : (
-                            <span className="text-muted-foreground opacity-50">
-                              -
+                          </div>
+                          <h3 className="font-medium truncate">{problem.name}</h3>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {problem.platform.charAt(0).toUpperCase() +
+                              problem.platform.slice(1).toLowerCase()}
+                          </p>
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground">
+                              {problem.topic}
                             </span>
-                          )}
-                        </td>
-                        <td className="p-4">
-                          {problem.solved_by_users ? (
-                            <div className="flex -space-x-2 overflow-hidden">
-                              {problem.solved_by_users
-                                .split(",")
-                                .map((u) => u.trim())
-                                .filter(Boolean)
-                                .map((u, i) => (
-                                  <div
-                                    key={i}
-                                    className="inline-flex items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground h-6 w-6 ring-2 ring-background"
-                                    title={u}
-                                  >
-                                    {u.charAt(0).toUpperCase()}
-                                  </div>
-                                ))}
-                            </div>
-                          ) : (
-                            "-"
-                          )}
-                        </td>
-                        <td className="p-4 text-right">
-                          <div className="flex justify-end gap-1">
-                            {problem.link && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                onClick={() =>
-                                  window.open(problem.link, "_blank")
-                                }
-                                title="Browse Problem"
+                            {problem.status && (
+                              <span
+                                className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ${getStatusClass(problem.status)}`}
                               >
-                                <ExternalLink className="h-4 w-4" />
-                              </Button>
+                                {problem.status}
+                              </span>
                             )}
+                          </div>
+                          {problem.solved_by_users && (
+                            <div className="mt-2">
+                              <p className="text-xs text-muted-foreground mb-1">Solved by:</p>
+                              <div className="flex -space-x-2 overflow-hidden">
+                                {problem.solved_by_users
+                                  .split(",")
+                                  .map((u) => u.trim())
+                                  .filter(Boolean)
+                                  .map((u, i) => (
+                                    <div
+                                      key={i}
+                                      className="inline-flex items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground h-6 w-6 ring-2 ring-background"
+                                      title={u}
+                                    >
+                                      {u.charAt(0).toUpperCase()}
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-1 ml-2">
+                          {problem.link && (
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              onClick={() => openAddAttemptModal(problem.id)}
-                              title="Add Attempt"
+                              onClick={() =>
+                                window.open(problem.link, "_blank")
+                              }
+                              title="Browse Problem"
                             >
-                              <Plus className="h-4 w-4" />
+                              <ExternalLink className="h-4 w-4" />
                             </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={8}
-                      className="text-center text-muted-foreground py-12"
-                    >
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <Search className="h-8 w-8 opacity-20" />
-                        <p>No problems found</p>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-primary"
+                            onClick={() => openAddAttemptModal(problem.id)}
+                            title="Add Attempt"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </td>
+                    </div>
+                  ))
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Search className="h-8 w-8 opacity-20" />
+                    <p>No problems found</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop view - Table layout */}
+            <div className="hidden md:block">
+              <table className="w-full">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="w-[60px] h-12 px-4 text-left font-semibold text-muted-foreground">
+                      ID
+                    </th>
+                    <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
+                      Platform
+                    </th>
+                    <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
+                      Name
+                    </th>
+                    <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
+                      Topic
+                    </th>
+                    <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
+                      Difficulty
+                    </th>
+                    <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
+                      Status
+                    </th>
+                    <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
+                      Solved By
+                    </th>
+                    <th className="h-12 px-4 text-right font-semibold text-muted-foreground">
+                      Actions
+                    </th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="w-full">
+                  {showInlineLoader ? (
+                    <tr>
+                      <td colSpan={8} className="text-center py-8">
+                        <ArrowInlineLoader text="Refreshing problems..." />
+                      </td>
+                    </tr>
+                  ) : problems.length > 0 ? (
+                    problems
+                      .filter((problem) => {
+                        // Search filter
+                        const matchesSearch =
+                          !searchTerm ||
+                          problem.name
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase()) ||
+                          problem.platform
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase()) ||
+                          problem.topic
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase());
+
+                        // Difficulty filter
+                        const matchesDifficulty =
+                          selectedDifficulty === "all" ||
+                          problem.difficulty.toLowerCase() ===
+                            selectedDifficulty.toLowerCase();
+
+                        // Status filter
+                        const matchesStatus =
+                          selectedStatus === "all" ||
+                          (problem.status &&
+                            problem.status.toLowerCase() ===
+                              selectedStatus.toLowerCase());
+
+                        return (
+                          matchesSearch && matchesDifficulty && matchesStatus
+                        );
+                      })
+                      .map((problem) => (
+                        <tr
+                          key={problem.id}
+                          className="hover:bg-muted/50 transition-colors border-b"
+                        >
+                          <td className="p-4 font-mono text-xs text-muted-foreground">
+                            #{problem.id}
+                          </td>
+                          <td className="p-4 font-medium text-muted-foreground">
+                            {problem.platform.charAt(0).toUpperCase() +
+                              problem.platform.slice(1).toLowerCase()}
+                          </td>
+                          <td className="p-4 font-medium">{problem.name}</td>
+                          <td className="p-4">
+                            <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                              {problem.topic}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <span
+                              className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium ${getDifficultyClass(problem.difficulty)}`}
+                            >
+                              {problem.difficulty}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            {problem.status ? (
+                              <span
+                                className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium ${getStatusClass(problem.status)}`}
+                              >
+                                {problem.status}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground opacity-50">
+                                -
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-4">
+                            {problem.solved_by_users ? (
+                              <div className="flex -space-x-2 overflow-hidden">
+                                {problem.solved_by_users
+                                  .split(",")
+                                  .map((u) => u.trim())
+                                  .filter(Boolean)
+                                  .map((u, i) => (
+                                    <div
+                                      key={i}
+                                      className="inline-flex items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground h-6 w-6 ring-2 ring-background"
+                                      title={u}
+                                    >
+                                      {u.charAt(0).toUpperCase()}
+                                    </div>
+                                  ))}
+                              </div>
+                            ) : (
+                              "-"
+                            )}
+                          </td>
+                          <td className="p-4 text-right">
+                            <div className="flex justify-end gap-1">
+                              {problem.link && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                  onClick={() =>
+                                    window.open(problem.link, "_blank")
+                                  }
+                                  title="Browse Problem"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={() => openAddAttemptModal(problem.id)}
+                                title="Add Attempt"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="text-center text-muted-foreground py-12"
+                      >
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Search className="h-8 w-8 opacity-20" />
+                          <p>No problems found</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </CardContent>
       </Card>

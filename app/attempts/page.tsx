@@ -116,7 +116,7 @@ function AttemptsPageContent() {
   };
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
+    <div className="container mx-auto py-6 sm:py-10 px-4 max-w-6xl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Attempts</h1>
@@ -164,7 +164,66 @@ function AttemptsPageContent() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border overflow-hidden">
+          {/* Mobile view - Card layout for small screens */}
+          <div className="block md:hidden">
+            {loading ? (
+              <div className="p-8 text-center">
+                <ArrowInlineLoader text="Loading attempts..." />
+              </div>
+            ) : attempts.length > 0 ? (
+              attempts.map((attempt) => (
+                <div
+                  key={attempt.id}
+                  className="border rounded-lg p-4 mb-4 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                          #{attempt.id}
+                        </span>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusClass(attempt.status)}`}
+                        >
+                          {attempt.status}
+                        </span>
+                      </div>
+                      <h3 className="font-medium truncate">{attempt.problem_name || attempt.problem_id}</h3>
+                      <div className="mt-2 space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Date:</span>
+                          <span>{attempt.date}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Time:</span>
+                          <span>{attempt.time_taken || "-"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">First Try:</span>
+                          <span>{attempt.first_try ? "Yes" : "No"}</span>
+                        </div>
+                        {attempt.notes && (
+                          <div>
+                            <span className="text-muted-foreground block">Notes:</span>
+                            <span className="text-sm">{attempt.notes}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-8 text-center text-muted-foreground">
+                {selectedUser
+                  ? "No attempts found for this user."
+                  : "Select a user to view attempts."}
+              </div>
+            )}
+          </div>
+
+          {/* Desktop view - Table layout */}
+          <div className="hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
