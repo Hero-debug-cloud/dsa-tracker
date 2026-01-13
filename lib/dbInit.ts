@@ -23,17 +23,56 @@ const client = createClient({
 // Initialize database schema
 export const initializeDatabase = async () => {
   try {
-    // Create tables if they don't exist
+    // Create topics table if it doesn't exist
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS topics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE
+      );
+    `);
+
+    // Create problems table if it doesn't exist
     await client.execute(`
       CREATE TABLE IF NOT EXISTS problems (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         platform TEXT,
         name TEXT NOT NULL,
         link TEXT,
-        topic TEXT NOT NULL,
+        topic TEXT,
         difficulty TEXT CHECK(difficulty IN ('Easy','Medium','Hard')) NOT NULL,
+        topic_id INTEGER,
+        FOREIGN KEY (topic_id) REFERENCES topics (id),
         UNIQUE(platform, name)
       );
+    `);
+
+    // Check if the topic_id column exists, and add it if it doesn't
+    try {
+      await client.execute(`SELECT topic_id FROM problems LIMIT 1;`);
+      console.log("topic_id column already exists");
+    } catch (e: any) {
+      // If topic_id column doesn't exist, add it
+      try {
+        await client.execute(`ALTER TABLE problems ADD COLUMN topic_id INTEGER;`);
+        console.log("Added topic_id column to problems table");
+      } catch (alterError: any) {
+        console.log("Could not add topic_id column:", alterError.message);
+      }
+    }
+
+    // Populate topics table with unique topics from existing problems table
+    // This will work whether or not the topic_id column existed before
+    await client.execute(`
+      INSERT OR IGNORE INTO topics (name)
+      SELECT DISTINCT topic FROM problems WHERE topic IS NOT NULL AND topic != '';
+    `);
+
+    // Update problems table to reference topic_id based on the topic name
+    // This will update any rows where topic_id is NULL or not set
+    await client.execute(`
+      UPDATE problems
+      SET topic_id = (SELECT id FROM topics WHERE name = problems.topic)
+      WHERE topic_id IS NULL AND topic IS NOT NULL;
     `);
 
     await client.execute(`

@@ -55,9 +55,15 @@ export async function GET(req: NextRequest) {
 
     if (userFilter) {
       // Get problems with user's latest attempt status
+      // Use COALESCE to get topic from topic_id if available, otherwise from the old topic column
       query = `
         SELECT
-          p.*,
+          p.id,
+          p.platform,
+          p.name,
+          p.link,
+          COALESCE(t.name, p.topic) AS topic,
+          p.difficulty,
           a.status,
           a.time_taken,
           a.first_try,
@@ -69,6 +75,7 @@ export async function GET(req: NextRequest) {
               AND a2.status = 'Solved'
           ) AS solved_by_users
         FROM problems p
+        LEFT JOIN topics t ON p.topic_id = t.id
         LEFT JOIN attempts a ON a.id = (
           SELECT a2.id
           FROM attempts a2
@@ -86,7 +93,12 @@ export async function GET(req: NextRequest) {
       // Get problems without user-specific status
       query = `
         SELECT
-          p.*,
+          p.id,
+          p.platform,
+          p.name,
+          p.link,
+          COALESCE(t.name, p.topic) AS topic,
+          p.difficulty,
           NULL AS status,
           NULL AS time_taken,
           NULL AS first_try,
@@ -98,6 +110,7 @@ export async function GET(req: NextRequest) {
               AND a2.status = 'Solved'
           ) AS solved_by_users
         FROM problems p
+        LEFT JOIN topics t ON p.topic_id = t.id
         ORDER BY
           CASE p.difficulty WHEN 'Easy' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END,
           p.name
@@ -133,6 +146,24 @@ export async function POST(req: NextRequest) {
   try {
     const p = await req.json();
 
+    // First, ensure the topic exists in the topics table
+    let topicResult = await client.execute(
+      "SELECT id FROM topics WHERE name = ?",
+      [p.topic]
+    );
+
+    let topicId;
+    if (topicResult.rows.length === 0) {
+      // If topic doesn't exist, create it
+      const insertResult = await client.execute(
+        "INSERT INTO topics (name) VALUES (?)",
+        [p.topic]
+      );
+      topicId = Number(insertResult.lastInsertRowid);
+    } else {
+      topicId = topicResult.rows[0]["id"] as number;
+    }
+
     // Check for duplicates (platform + name)
     const existingProblem = await client.execute(
       "SELECT id FROM problems WHERE platform = ? AND name = ?",
@@ -141,8 +172,8 @@ export async function POST(req: NextRequest) {
 
     if (existingProblem.rows.length === 0) {
       await client.execute(
-        "INSERT INTO problems (platform, name, link, topic, difficulty) VALUES (?, ?, ?, ?, ?)",
-        [p.platform, p.name, p.link, p.topic, p.difficulty]
+        "INSERT INTO problems (platform, name, link, topic_id, difficulty) VALUES (?, ?, ?, ?, ?)",
+        [p.platform, p.name, p.link, topicId, p.difficulty]
       );
     }
 

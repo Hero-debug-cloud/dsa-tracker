@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Search, ExternalLink, Plus } from "lucide-react";
+import { Search, ExternalLink, Plus, ArrowUp, ArrowDown } from "lucide-react";
 import { useProblems, useMinimumLoadingTime } from "@/lib/hooks";
 import { AddAttemptModal } from "@/components/AddAttemptModal";
 import { DSAInlineLoader } from "@/components/ui/DSALoader";
@@ -31,10 +31,12 @@ export default function ProblemsPage() {
   const [users, setUsers] = useState<
     { id: number; name: string; created_at: string }[]
   >([]);
+  const [topics, setTopics] = useState<{ id: number; name: string }[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedTopic, setSelectedTopic] = useState<string>("all");
   const [isAddProblemModalOpen, setIsAddProblemModalOpen] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<string>("");
 
@@ -49,6 +51,11 @@ export default function ProblemsPage() {
     topic: "",
     difficulty: "Easy",
   });
+
+  const [sortConfig, setSortConfig] = useState<{
+    key: 'id' | 'platform' | 'name' | 'topic' | 'difficulty' | 'status' | null;
+    direction: 'asc' | 'desc';
+  }>({ key: 'id', direction: 'asc' });
 
   const router = useRouter();
 
@@ -71,6 +78,7 @@ export default function ProblemsPage() {
       router.push("/login");
     } else {
       loadUsers();
+      loadTopics();
 
       // Get logged in user info
       const userStr = localStorage.getItem("currentUser");
@@ -86,6 +94,26 @@ export default function ProblemsPage() {
       }
     }
   }, [router]);
+
+  const loadTopics = async () => {
+    try {
+      const response = await fetch("/api/topics", {
+        headers: getAuthHeaders(),
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+        throw new Error("Failed to load topics");
+      }
+      const topicsData = await response.json();
+      setTopics(topicsData);
+    } catch (error) {
+      console.error("Error loading topics:", error);
+      toast.error("Failed to load topics");
+    }
+  };
 
   // Load problems when selected user changes or on initial load
   useEffect(() => {
@@ -119,6 +147,96 @@ export default function ProblemsPage() {
       Authorization: `Bearer ${token}`,
     };
   };
+
+  const handleSort = (key: 'id' | 'platform' | 'name' | 'topic' | 'difficulty' | 'status') => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedAndFilteredProblems = problems
+    .filter((problem) => {
+      // Search filter
+      const matchesSearch =
+        !searchTerm ||
+        problem.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        problem.platform
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        problem.topic
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+
+      // Difficulty filter
+      const matchesDifficulty =
+        selectedDifficulty === "all" ||
+        problem.difficulty.toLowerCase() ===
+          selectedDifficulty.toLowerCase();
+
+      // Status filter
+      const matchesStatus =
+        selectedStatus === "all" ||
+        (problem.status &&
+          problem.status.toLowerCase() ===
+            selectedStatus.toLowerCase());
+
+      // Topic filter
+      const matchesTopic =
+        selectedTopic === "all" ||
+        problem.topic.toLowerCase() ===
+          selectedTopic.toLowerCase();
+
+      return (
+        matchesSearch && matchesDifficulty && matchesStatus && matchesTopic
+      );
+    })
+    .sort((a, b) => {
+      if (!sortConfig.key) return 0;
+
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortConfig.key) {
+        case 'id':
+          aValue = a.id;
+          bValue = b.id;
+          break;
+        case 'platform':
+          aValue = a.platform.toLowerCase();
+          bValue = b.platform.toLowerCase();
+          break;
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'topic':
+          aValue = a.topic.toLowerCase();
+          bValue = b.topic.toLowerCase();
+          break;
+        case 'difficulty':
+          aValue = a.difficulty.toLowerCase();
+          bValue = b.difficulty.toLowerCase();
+          break;
+        case 'status':
+          aValue = (a.status || '').toLowerCase();
+          bValue = (b.status || '').toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
 
   const openAddAttemptModal = (problemId: number) => {
     setAttemptProblemId(problemId.toString());
@@ -256,14 +374,29 @@ export default function ProblemsPage() {
                     <Label htmlFor="topic" className="text-right">
                       Topic
                     </Label>
-                    <Input
-                      id="topic"
-                      className="col-span-3"
+                    <Select
                       value={newProblem.topic}
-                      onChange={(e) =>
-                        setNewProblem({ ...newProblem, topic: e.target.value })
+                      onValueChange={(value) =>
+                        setNewProblem({ ...newProblem, topic: value })
                       }
-                    />
+                    >
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select a topic" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {topics.length > 0 ? (
+                          topics.map((topic) => (
+                            <SelectItem key={topic.id} value={topic.name}>
+                              {topic.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="" disabled>
+                            Loading topics...
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="difficulty" className="text-right">
@@ -345,6 +478,21 @@ export default function ProblemsPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="w-full sm:w-[150px]">
+              <Select value={selectedTopic} onValueChange={setSelectedTopic}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by Topic" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Topics</SelectItem>
+                  {topics.map((topic) => (
+                    <SelectItem key={topic.id} value={topic.name}>
+                      {topic.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="rounded-md border bg-card shadow-sm overflow-hidden mt-6">
@@ -354,121 +502,89 @@ export default function ProblemsPage() {
                 <div className="p-8 text-center">
                   <ArrowInlineLoader text="Refreshing problems..." />
                 </div>
-              ) : problems.length > 0 ? (
-                problems
-                  .filter((problem) => {
-                    // Search filter
-                    const matchesSearch =
-                      !searchTerm ||
-                      problem.name
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()) ||
-                      problem.platform
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()) ||
-                      problem.topic
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase());
-
-                    // Difficulty filter
-                    const matchesDifficulty =
-                      selectedDifficulty === "all" ||
-                      problem.difficulty.toLowerCase() ===
-                        selectedDifficulty.toLowerCase();
-
-                    // Status filter
-                    const matchesStatus =
-                      selectedStatus === "all" ||
-                      (problem.status &&
-                        problem.status.toLowerCase() ===
-                          selectedStatus.toLowerCase());
-
-                    return (
-                      matchesSearch && matchesDifficulty && matchesStatus
-                    );
-                  })
-                  .map((problem) => (
-                    <div
-                      key={problem.id}
-                      className="border-b p-4 hover:bg-muted/50 transition-colors last:border-b-0"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-mono text-xs text-muted-foreground">
-                              #{problem.id}
-                            </span>
+              ) : sortedAndFilteredProblems.length > 0 ? (
+                sortedAndFilteredProblems.map((problem) => (
+                  <div
+                    key={problem.id}
+                    className="border-b p-4 hover:bg-muted/50 transition-colors last:border-b-0"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-mono text-xs text-muted-foreground">
+                            #{problem.id}
+                          </span>
+                          <span
+                            className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${getDifficultyClass(problem.difficulty)}`}
+                          >
+                            {problem.difficulty}
+                          </span>
+                        </div>
+                        <h3 className="font-medium truncate">{problem.name}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {problem.platform.charAt(0).toUpperCase() +
+                            problem.platform.slice(1).toLowerCase()}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground">
+                            {problem.topic}
+                          </span>
+                          {problem.status && (
                             <span
-                              className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${getDifficultyClass(problem.difficulty)}`}
+                              className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ${getStatusClass(problem.status)}`}
                             >
-                              {problem.difficulty}
+                              {problem.status}
                             </span>
-                          </div>
-                          <h3 className="font-medium truncate">{problem.name}</h3>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {problem.platform.charAt(0).toUpperCase() +
-                              problem.platform.slice(1).toLowerCase()}
-                          </p>
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground">
-                              {problem.topic}
-                            </span>
-                            {problem.status && (
-                              <span
-                                className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ${getStatusClass(problem.status)}`}
-                              >
-                                {problem.status}
-                              </span>
-                            )}
-                          </div>
-                          {problem.solved_by_users && (
-                            <div className="mt-2">
-                              <p className="text-xs text-muted-foreground mb-1">Solved by:</p>
-                              <div className="flex -space-x-2 overflow-hidden">
-                                {problem.solved_by_users
-                                  .split(",")
-                                  .map((u) => u.trim())
-                                  .filter(Boolean)
-                                  .map((u, i) => (
-                                    <div
-                                      key={i}
-                                      className="inline-flex items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground h-6 w-6 ring-2 ring-background"
-                                      title={u}
-                                    >
-                                      {u.charAt(0).toUpperCase()}
-                                    </div>
-                                  ))}
-                              </div>
-                            </div>
                           )}
                         </div>
-                        <div className="flex flex-col gap-1 ml-2">
-                          {problem.link && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              onClick={() =>
-                                window.open(problem.link, "_blank")
-                              }
-                              title="Browse Problem"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </Button>
-                          )}
+                        {problem.solved_by_users && (
+                          <div className="mt-2">
+                            <p className="text-xs text-muted-foreground mb-1">Solved by:</p>
+                            <div className="flex -space-x-2 overflow-hidden">
+                              {problem.solved_by_users
+                                .split(",")
+                                .map((u) => u.trim())
+                                .filter(Boolean)
+                                .map((u, i) => (
+                                  <div
+                                    key={i}
+                                    className="inline-flex items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground h-6 w-6 ring-2 ring-background"
+                                    title={u}
+                                  >
+                                    {u.charAt(0).toUpperCase()}
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-1 ml-2">
+                        {problem.link && (
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-muted-foreground hover:text-primary"
-                            onClick={() => openAddAttemptModal(problem.id)}
-                            title="Add Attempt"
+                            onClick={() =>
+                              window.open(problem.link, "_blank")
+                            }
+                            title="Browse Problem"
                           >
-                            <Plus className="h-4 w-4" />
+                            <ExternalLink className="h-4 w-4" />
                           </Button>
-                        </div>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => openAddAttemptModal(problem.id)}
+                          title="Add Attempt"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                  ))
+                  </div>
+                ))
               ) : (
                 <div className="p-8 text-center text-muted-foreground">
                   <div className="flex flex-col items-center justify-center gap-2">
@@ -484,23 +600,125 @@ export default function ProblemsPage() {
               <table className="w-full">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="w-[60px] h-12 px-4 text-left font-semibold text-muted-foreground">
-                      ID
+                    <th className="w-[100px] h-12 px-4 text-left font-semibold text-muted-foreground">
+                      <button
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                        onClick={() => handleSort('id')}
+                      >
+                        ID
+                        {sortConfig.key === 'id' ? (
+                          sortConfig.direction === 'asc' ? (
+                            <ArrowUp className="h-4 w-4" />
+                          ) : (
+                            <ArrowDown className="h-4 w-4" />
+                          )
+                        ) : (
+                          <div className="flex flex-col">
+                            <ArrowUp className="h-3 w-3 -mb-1" />
+                            <ArrowDown className="h-3 w-3 -mt-1" />
+                          </div>
+                        )}
+                      </button>
                     </th>
                     <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
-                      Platform
+                      <button
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                        onClick={() => handleSort('platform')}
+                      >
+                        Platform
+                        {sortConfig.key === 'platform' ? (
+                          sortConfig.direction === 'asc' ? (
+                            <ArrowUp className="h-4 w-4" />
+                          ) : (
+                            <ArrowDown className="h-4 w-4" />
+                          )
+                        ) : (
+                          <div className="flex flex-col">
+                            <ArrowUp className="h-3 w-3 -mb-1" />
+                            <ArrowDown className="h-3 w-3 -mt-1" />
+                          </div>
+                        )}
+                      </button>
                     </th>
                     <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
-                      Name
+                      <button
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                        onClick={() => handleSort('name')}
+                      >
+                        Name
+                        {sortConfig.key === 'name' ? (
+                          sortConfig.direction === 'asc' ? (
+                            <ArrowUp className="h-4 w-4" />
+                          ) : (
+                            <ArrowDown className="h-4 w-4" />
+                          )
+                        ) : (
+                          <div className="flex flex-col">
+                            <ArrowUp className="h-3 w-3 -mb-1" />
+                            <ArrowDown className="h-3 w-3 -mt-1" />
+                          </div>
+                        )}
+                      </button>
                     </th>
                     <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
-                      Topic
+                      <button
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                        onClick={() => handleSort('topic')}
+                      >
+                        Topic
+                        {sortConfig.key === 'topic' ? (
+                          sortConfig.direction === 'asc' ? (
+                            <ArrowUp className="h-4 w-4" />
+                          ) : (
+                            <ArrowDown className="h-4 w-4" />
+                          )
+                        ) : (
+                          <div className="flex flex-col">
+                            <ArrowUp className="h-3 w-3 -mb-1" />
+                            <ArrowDown className="h-3 w-3 -mt-1" />
+                          </div>
+                        )}
+                      </button>
                     </th>
                     <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
-                      Difficulty
+                      <button
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                        onClick={() => handleSort('difficulty')}
+                      >
+                        Difficulty
+                        {sortConfig.key === 'difficulty' ? (
+                          sortConfig.direction === 'asc' ? (
+                            <ArrowUp className="h-4 w-4" />
+                          ) : (
+                            <ArrowDown className="h-4 w-4" />
+                          )
+                        ) : (
+                          <div className="flex flex-col">
+                            <ArrowUp className="h-3 w-3 -mb-1" />
+                            <ArrowDown className="h-3 w-3 -mt-1" />
+                          </div>
+                        )}
+                      </button>
                     </th>
                     <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
-                      Status
+                      <button
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                        onClick={() => handleSort('status')}
+                      >
+                        Status
+                        {sortConfig.key === 'status' ? (
+                          sortConfig.direction === 'asc' ? (
+                            <ArrowUp className="h-4 w-4" />
+                          ) : (
+                            <ArrowDown className="h-4 w-4" />
+                          )
+                        ) : (
+                          <div className="flex flex-col">
+                            <ArrowUp className="h-3 w-3 -mb-1" />
+                            <ArrowDown className="h-3 w-3 -mt-1" />
+                          </div>
+                        )}
+                      </button>
                     </th>
                     <th className="h-12 px-4 text-left font-semibold text-muted-foreground">
                       Solved By
@@ -517,126 +735,94 @@ export default function ProblemsPage() {
                         <ArrowInlineLoader text="Refreshing problems..." />
                       </td>
                     </tr>
-                  ) : problems.length > 0 ? (
-                    problems
-                      .filter((problem) => {
-                        // Search filter
-                        const matchesSearch =
-                          !searchTerm ||
-                          problem.name
-                            .toLowerCase()
-                            .includes(searchTerm.toLowerCase()) ||
-                          problem.platform
-                            .toLowerCase()
-                            .includes(searchTerm.toLowerCase()) ||
-                          problem.topic
-                            .toLowerCase()
-                            .includes(searchTerm.toLowerCase());
-
-                        // Difficulty filter
-                        const matchesDifficulty =
-                          selectedDifficulty === "all" ||
-                          problem.difficulty.toLowerCase() ===
-                            selectedDifficulty.toLowerCase();
-
-                        // Status filter
-                        const matchesStatus =
-                          selectedStatus === "all" ||
-                          (problem.status &&
-                            problem.status.toLowerCase() ===
-                              selectedStatus.toLowerCase());
-
-                        return (
-                          matchesSearch && matchesDifficulty && matchesStatus
-                        );
-                      })
-                      .map((problem) => (
-                        <tr
-                          key={problem.id}
-                          className="hover:bg-muted/50 transition-colors border-b"
-                        >
-                          <td className="p-4 font-mono text-xs text-muted-foreground">
-                            #{problem.id}
-                          </td>
-                          <td className="p-4 font-medium text-muted-foreground">
-                            {problem.platform.charAt(0).toUpperCase() +
-                              problem.platform.slice(1).toLowerCase()}
-                          </td>
-                          <td className="p-4 font-medium">{problem.name}</td>
-                          <td className="p-4">
-                            <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                              {problem.topic}
-                            </span>
-                          </td>
-                          <td className="p-4">
+                  ) : sortedAndFilteredProblems.length > 0 ? (
+                    sortedAndFilteredProblems.map((problem) => (
+                      <tr
+                        key={problem.id}
+                        className="hover:bg-muted/50 transition-colors border-b"
+                      >
+                        <td className="p-4 font-mono text-xs text-muted-foreground">
+                          #{problem.id}
+                        </td>
+                        <td className="p-4 font-medium text-muted-foreground">
+                          {problem.platform.charAt(0).toUpperCase() +
+                            problem.platform.slice(1).toLowerCase()}
+                        </td>
+                        <td className="p-4 font-medium">{problem.name}</td>
+                        <td className="p-4">
+                          <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                            {problem.topic}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <span
+                            className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium ${getDifficultyClass(problem.difficulty)}`}
+                          >
+                            {problem.difficulty}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          {problem.status ? (
                             <span
-                              className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium ${getDifficultyClass(problem.difficulty)}`}
+                              className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium ${getStatusClass(problem.status)}`}
                             >
-                              {problem.difficulty}
+                              {problem.status}
                             </span>
-                          </td>
-                          <td className="p-4">
-                            {problem.status ? (
-                              <span
-                                className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium ${getStatusClass(problem.status)}`}
-                              >
-                                {problem.status}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground opacity-50">
-                                -
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-4">
-                            {problem.solved_by_users ? (
-                              <div className="flex -space-x-2 overflow-hidden">
-                                {problem.solved_by_users
-                                  .split(",")
-                                  .map((u) => u.trim())
-                                  .filter(Boolean)
-                                  .map((u, i) => (
-                                    <div
-                                      key={i}
-                                      className="inline-flex items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground h-6 w-6 ring-2 ring-background"
-                                      title={u}
-                                    >
-                                      {u.charAt(0).toUpperCase()}
-                                    </div>
-                                  ))}
-                              </div>
-                            ) : (
-                              "-"
-                            )}
-                          </td>
-                          <td className="p-4 text-right">
-                            <div className="flex justify-end gap-1">
-                              {problem.link && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                  onClick={() =>
-                                    window.open(problem.link, "_blank")
-                                  }
-                                  title="Browse Problem"
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                </Button>
-                              )}
+                          ) : (
+                            <span className="text-muted-foreground opacity-50">
+                              -
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          {problem.solved_by_users ? (
+                            <div className="flex -space-x-2 overflow-hidden">
+                              {problem.solved_by_users
+                                .split(",")
+                                .map((u) => u.trim())
+                                .filter(Boolean)
+                                .map((u, i) => (
+                                  <div
+                                    key={i}
+                                    className="inline-flex items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground h-6 w-6 ring-2 ring-background"
+                                    title={u}
+                                  >
+                                    {u.charAt(0).toUpperCase()}
+                                  </div>
+                                ))}
+                            </div>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex justify-end gap-1">
+                            {problem.link && (
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                onClick={() => openAddAttemptModal(problem.id)}
-                                title="Add Attempt"
+                                onClick={() =>
+                                  window.open(problem.link, "_blank")
+                                }
+                                title="Browse Problem"
                               >
-                                <Plus className="h-4 w-4" />
+                                <ExternalLink className="h-4 w-4" />
                               </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => openAddAttemptModal(problem.id)}
+                              title="Add Attempt"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
                   ) : (
                     <tr>
                       <td
