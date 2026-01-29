@@ -24,6 +24,7 @@ import { useAttempts } from "@/lib/hooks";
 import { AddAttemptModal } from "@/components/AddAttemptModal";
 import { Plus } from "lucide-react";
 import { ArrowInlineLoader } from "@/components/ui/ArrowLoader";
+import { NotesDisplay } from "@/components/NotesDisplay";
 
 // Wrapper component for search params functionality
 function AttemptsPageContent() {
@@ -203,9 +204,11 @@ function AttemptsPageContent() {
                           <span>{attempt.first_try ? "Yes" : "No"}</span>
                         </div>
                         {attempt.notes && (
-                          <div>
-                            <span className="text-muted-foreground block">Notes:</span>
-                            <span className="text-sm">{attempt.notes}</span>
+                          <div className="pt-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground text-sm">Notes:</span>
+                              <NotesDisplay notes={attempt.notes} />
+                            </div>
                           </div>
                         )}
                       </div>
@@ -233,7 +236,7 @@ function AttemptsPageContent() {
                   <TableHead>Status</TableHead>
                   <TableHead>Time (min)</TableHead>
                   <TableHead>First Try</TableHead>
-                  <TableHead>Notes</TableHead>
+                  <TableHead className="text-center">Notes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -260,11 +263,8 @@ function AttemptsPageContent() {
                       </TableCell>
                       <TableCell>{attempt.time_taken || "-"}</TableCell>
                       <TableCell>{attempt.first_try ? "Yes" : "No"}</TableCell>
-                      <TableCell
-                        className="max-w-[200px] truncate"
-                        title={attempt.notes}
-                      >
-                        {attempt.notes || "-"}
+                      <TableCell>
+                        <NotesDisplay notes={attempt.notes} />
                       </TableCell>
                     </TableRow>
                   ))

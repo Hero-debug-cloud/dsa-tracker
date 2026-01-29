@@ -189,7 +189,7 @@ export function AddAttemptModal({
                 value={attemptNotes}
                 onChange={(e) => setAttemptNotes(e.target.value)}
                 placeholder="Additional notes"
-                className="min-h-[100px]"
+                className="min-h-[100px] max-h-40 overflow-y-auto"
               />
             </div>
           </div>
