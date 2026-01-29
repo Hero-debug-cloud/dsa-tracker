@@ -5,7 +5,7 @@ import React from "react";
 import { toast } from "sonner";
 
 interface NotesDisplayProps {
-  notes: string;
+  notes?: string;
 }
 
 export function NotesDisplay({ notes }: NotesDisplayProps) {
